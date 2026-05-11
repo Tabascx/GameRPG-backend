@@ -1,34 +1,39 @@
 import strawberry
-from typing import Annotated, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from app.jugadors.types import Jugador
+from typing import Optional
 
 @strawberry.type
-class Puntuacio:
+class ResultatJoc:
     id: str
     jugador_id: str
-    punts: int
-    baixes: int
-    jugador: Annotated["Jugador", strawberry.lazy("app.jugadors.types")] | None = None
+    joc: str
+    monedes_apostades: float
+    monedes_resultat: float
+    guanyat: bool
+    dia: int
 
 @strawberry.type
 class Partida:
     id: str
+    jugador_id: str
     mapa: str
     estat: str
+    dia: int
     data_creacio: str
 
 @strawberry.input
 class CrearPartidaInput:
-    mapa: str
+    jugador_id: str
+    dia: int
 
 @strawberry.input
-class RegistrarPuntuacioInput:
+class RegistrarResultatInput:
     partida_id: str
     jugador_id: str
-    punts: int
-    baixes: int
+    joc: str
+    monedes_apostades: float
+    monedes_resultat: float
+    guanyat: bool
+    dia: int
 
 @strawberry.type
 class ErrorPartidaNoTrobada:

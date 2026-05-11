@@ -1,7 +1,6 @@
 import strawberry
 from app.firebase_conf import db
-from app.jugadors.types import Jugador, InventariItem
-
+from app.jugadors.types import Jugador, Millora
 
 @strawberry.type
 class JugadorsQuery:
@@ -12,9 +11,19 @@ class JugadorsQuery:
             return None
         data = doc.to_dict()
 
-        # Cargar subcol·lecció inventari
-        items_ref = db.collection("jugadors").document(id).collection("inventari").stream()
-        inventari = [
-            InventariItem(id=i.id, **i.to_dict()) for i in items_ref
+        millores_ref = db.collection("jugadors").document(id).collection("inventari").stream()
+        millores = [
+            Millora(id=m.id, **m.to_dict()) for m in millores_ref
         ]
-        return Jugador(id=doc.id, inventari=inventari, **data)
+        return Jugador(id=doc.id, millores=millores, **data)
+
+    @strawberry.field
+    def leaderboard(self) -> list[Jugador]:
+        docs = db.collection("jugadors").order_by("monedes", direction="DESCENDING").limit(10).stream()
+        result = []
+        for doc in docs:
+            data = doc.to_dict()
+            millores_ref = db.collection("jugadors").document(doc.id).collection("inventari").stream()
+            millores = [Millora(id=m.id, **m.to_dict()) for m in millores_ref]
+            result.append(Jugador(id=doc.id, millores=millores, **data))
+        return result

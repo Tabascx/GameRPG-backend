@@ -1,30 +1,36 @@
 import strawberry
-from typing import TYPE_CHECKING, Annotated
+from typing import Optional
 
 @strawberry.type
-class InventariItem:
+class Millora:
     id: str
-    nom_item: str
-    raresa: str
+    nom: str
+    descripcio: str
+    nivell: int
 
 @strawberry.type
 class Jugador:
     id: str
     nickname: str
-    nivell: int
+    monedes: float
+    dia_actual: int
     banejat: bool
-    inventari: list[InventariItem] = strawberry.field(default_factory=list)
+    millores: list[Millora] = strawberry.field(default_factory=list)
 
 @strawberry.input
 class RegistrarJugadorInput:
     nickname: str
 
 @strawberry.input
-class AtorgarItemInput:
+class ComprarMilloraInput:
     jugador_id: str
-    nom_item: str
-    raresa: str
+    nom: str
+    descripcio: str
 
 @strawberry.type
 class ErrorJugadorBanejat:
+    missatge: str
+
+@strawberry.type
+class ErrorSenseMonedes:
     missatge: str
