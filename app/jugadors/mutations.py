@@ -1,5 +1,5 @@
 import strawberry
-from typing import Annotated, Union
+from typing import Union
 from app.firebase_conf import db
 from app.auth import get_current_user
 from app.jugadors.types import Jugador, Millora, RegistrarJugadorInput, ComprarMilloraInput, ErrorJugadorBanejat, ErrorSenseMonedes
@@ -15,8 +15,15 @@ COST_MILLORA = {
 class JugadorsMutation:
     @strawberry.mutation
     def registrar_jugador(self, input: RegistrarJugadorInput, info: Info) -> Jugador:
-        user = get_current_user(info)
-        uid = user["uid"]
+        try:
+            user = get_current_user(info)
+            uid = user.get("uid")
+        except Exception:
+            uid = None
+
+        if not uid:
+            uid = db.collection("jugadors").document().id
+
         data = {
             "nickname": input.nickname,
             "monedes": 400.0,

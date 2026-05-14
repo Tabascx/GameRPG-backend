@@ -5,26 +5,38 @@ import Radar from '../components/Radar'
 import Millores from '../components/Millores'
 import Leaderboard from '../components/Leaderboard'
 
-const TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJqdWdhZG9yMSIsImVtYWlsIjoidGVzdEB0ZXN0LmNvbSJ9.fgxo5xpVBxfm-Rf9OQ2Vm42CbHusauAvWLXQaz_2m7o'
-const JUGADOR_ID = 'jugador1'
-
-localStorage.setItem('token', TOKEN)
-
-export default function Hangar({ jugador, setJugador }) {
+export default function Hangar({ setJugador }) {
     const [nickname, setNickname] = useState('')
+    const [error, setError] = useState('')
+    const [jugadorId, setJugadorId] = useState(() => localStorage.getItem('jugadorId') || '')
 
     const { data, refetch } = useQuery(GET_PERFIL, {
-        variables: { id: JUGADOR_ID }
+        variables: { id: jugadorId },
+        skip: !jugadorId,
+        fetchPolicy: 'network-only'
     })
 
     useEffect(() => {
         if (data?.perfilJugador) {
             setJugador(data.perfilJugador)
+            localStorage.setItem('jugadorId', data.perfilJugador.id)
         }
-    }, [data])
+    }, [data, setJugador])
 
     const [registrar] = useMutation(REGISTRAR_JUGADOR, {
-        onCompleted: () => refetch()
+        onCompleted: (result) => {
+            const jugadorRegistrado = result?.registrarJugador
+            if (jugadorRegistrado) {
+                setError('')
+                setJugadorId(jugadorRegistrado.id)
+                localStorage.setItem('jugadorId', jugadorRegistrado.id)
+                setJugador(jugadorRegistrado)
+                refetch({ id: jugadorRegistrado.id })
+            }
+        },
+        onError: (err) => {
+            setError(err.message)
+        }
     })
 
     const [comprar] = useMutation(COMPRAR_MILLORA, {
@@ -52,11 +64,16 @@ export default function Hangar({ jugador, setJugador }) {
                                         className="form-control mb-2"
                                         placeholder="Nom del pilot"
                                         value={nickname}
-                                        onChange={e => setNickname(e.target.value)}
+                                        onChange={e => {
+                                            setNickname(e.target.value)
+                                            setError('')
+                                        }}
                                     />
+                                    {error && <p className="text-danger mb-2">{error}</p>}
                                     <button
                                         className="btn btn-warning w-100"
-                                        onClick={() => registrar({ variables: { nickname } })}
+                                        onClick={() => registrar({ variables: { nickname: nickname.trim() } })}
+                                        disabled={!nickname.trim()}
                                     >
                                         Registrar
                                     </button>
@@ -69,11 +86,11 @@ export default function Hangar({ jugador, setJugador }) {
 
                 <div className="col-md-4">
                     <Millores
-                        jugadorId={JUGADOR_ID}
+                        jugadorId={jugadorId}
                         monedes={perfil?.monedes}
                         millores={perfil?.millores}
                         onComprar={(nom, descripcio) =>
-                            comprar({ variables: { jugadorId: JUGADOR_ID, nom, descripcio } })
+                            comprar({ variables: { jugadorId: jugadorId, nom, descripcio } })
                         }
                     />
                 </div>

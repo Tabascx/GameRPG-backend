@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import Hangar from './pages/Hangar'
-import Battle from './pages/Battle'
+import { Suspense, lazy, useState } from 'react'
+
+const Hangar = lazy(() => import('./pages/Hangar'))
+const Battle = lazy(() => import('./pages/Battle'))
 
 function App() {
   const [page, setPage] = useState('hangar')
@@ -27,11 +28,13 @@ function App() {
           </div>
         </nav>
 
-        {page === 'hangar' ? (
-            <Hangar jugador={jugador} setJugador={setJugador} />
-        ) : (
-            <Battle jugador={jugador} />
-        )}
+        <Suspense fallback={<p className="text-center text-light mt-4">Carregant...</p>}>
+          {page === 'hangar' ? (
+              <Hangar jugador={jugador} setJugador={setJugador} />
+          ) : (
+              <Battle jugador={jugador} />
+          )}
+        </Suspense>
       </div>
   )
 }

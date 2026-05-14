@@ -14,6 +14,13 @@ export default function Battle({ jugador }) {
             height: 600,
             backgroundColor: '#000011',
             parent: 'phaser-container',
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 0 },
+                    debug: false,
+                }
+            },
             scene: [GameScene],
         })
 
